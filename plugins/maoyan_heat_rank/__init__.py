@@ -7,7 +7,8 @@ class MaoyanHeatRank(PluginBase):
         "description": "获取猫眼热度榜数据并发送通知。",
         "version": "0.1",
         "author": "zlm0805",
-        "url": "https://github.com/zlm0805/mp2/"
+        "url": "https://github.com/zlm0805/MoviePilot-Plugins/",
+        "icon": "1.png"  # 添加图标路径
     }
     def __init__(self):
         super().__init__()
@@ -33,13 +34,13 @@ class MaoyanHeatRank(PluginBase):
                             "type": "string",
                             "title": "API ID",
                             "description": "请替换为你的ID。",
-                            "default": "11234"
+                            "default": "10003779"
                         },
                         "key": {
                             "type": "string",
                             "title": "API密钥",
                             "description": "请替换为你的密钥。",
-                            "default": "b12345678912376c2c16c0f6302e"
+                            "default": "b37d7cb7e9d70760576c2c16c0f6302e"
                         }
                     },
                     "required": ["url1", "url2", "id", "key"]
