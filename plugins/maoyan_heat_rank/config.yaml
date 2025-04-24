@@ -1,0 +1,9 @@
+# 配置文件
+api:
+  url1: "https://cn.apihz.cn/api/bang/maoyan2.php"
+  url2: "https://cn.apihz.cn/api/bang/maoyan3.php"
+  id: ""  # 用户可以修改的ID
+  key: ""  # 用户可以修改的密钥
+notification:
+  title: "猫眼热度榜排行"  # 通知标题
+  enabled: true  # 是否启用通知
