@@ -1,0 +1,93 @@
+from moviepilot.core.plugin import PluginBase
+
+class MaoyanHeatRank(PluginBase):
+    plugin_info = {
+        "name": "猫眼热度榜排行",
+        "description": "获取猫眼热度榜数据并发送通知。",
+        "version": "0.1",
+        "author": "zlm0805",
+        "url": "https://github.com/zlm0805/MoviePilot-Plugins/"
+    }
+
+    def __init__(self):
+        super().__init__()
+        self.config_schema = {
+            "type": "object",
+            "properties": {
+                "api": {
+                    "type": "object",
+                    "title": "API 配置",
+                    "description": "请访问 https://www.apihz.cn/ 获取 ID 和密钥。",
+                    "properties": {
+                        "url1": {
+                            "type": "string",
+                            "title": "API 地址 1",
+                            "default": "https://cn.apihz.cn/api/bang/maoyan2.php"
+                        },
+                        "url2": {
+                            "type": "string",
+                            "title": "API 地址 2",
+                            "default": "https://cn.apihz.cn/api/bang/maoyan3.php"
+                        },
+                        "id": {
+                            "type": "string",
+                            "title": "API ID",
+                            "description": "请替换为你的 ID。",
+                            "default": "10003779"
+                        },
+                        "key": {
+                            "type": "string",
+                            "title": "API 密钥",
+                            "description": "请替换为你的密钥。",
+                            "default": "b37d7cb7e9d70760576c2c16c0f6302e"
+                        }
+                    },
+                    "required": ["url1", "url2", "id", "key"]
+                },
+                "notification": {
+                    "type": "object",
+                    "title": "通知配置",
+                    "properties": {
+                        "title": {
+                            "type": "string",
+                            "title": "通知标题",
+                            "default": "猫眼热度榜排行"
+                        },
+                        "enabled": {
+                            "type": "boolean",
+                            "title": "启用通知",
+                            "default": True
+                        }
+                    },
+                    "required": ["title", "enabled"]
+                }
+            }
+        }
+
+    def run(self):
+        """插件主逻辑"""
+        # 示例逻辑：打印日志
+        from moviepilot.utils.log import logger
+        logger.info("猫眼热度榜插件正在运行")
+        # 在这里实现获取数据、排序、发送通知等逻辑
+
+# 全局变量
+plugin = None
+
+def init_plugin():
+    """初始化插件"""
+    global plugin
+    plugin = MaoyanHeatRank()  # 实例化插件
+    plugin.register_config_page(
+        title="猫眼热度榜排行插件",
+        description="获取猫眼热度榜数据并发送通知。",
+        schema=plugin.config_schema
+    )
+    plugin.scheduler.add_job(plugin.run, "interval", hours=1, name="猫眼热度榜排行")
+
+def destroy_plugin():
+    """销毁插件"""
+    global plugin
+    if plugin:
+        plugin.scheduler.remove_job("猫眼热度榜排行")
+        plugin = None
