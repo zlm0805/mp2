@@ -11,30 +11,30 @@ class MaoyanHeatRank(PluginBase):
             "properties": {
                 "api": {
                     "type": "object",
-                    "title": "API 配置",
-                    "description": "请访问 https://www.apihz.cn/ 获取 ID 和密钥。",
+                    "title": "API配置",
+                    "description": "请访问https://www.apihz.cn/获取ID和密钥。",
                     "properties": {
                         "url1": {
                             "type": "string",
-                            "title": "API 地址 1",
+                            "title": "API地址1",
                             "default": "https://cn.apihz.cn/api/bang/maoyan2.php"
                         },
                         "url2": {
                             "type": "string",
-                            "title": "API 地址 2",
+                            "title": "API地址2",
                             "default": "https://cn.apihz.cn/api/bang/maoyan3.php"
                         },
                         "id": {
                             "type": "string",
                             "title": "API ID",
-                            "description": "请替换为你的 ID。",
-                            "default": "10003779"
+                            "description": "请替换为你的ID。",
+                            "default": "11234"
                         },
                         "key": {
                             "type": "string",
-                            "title": "API 密钥",
+                            "title": "API密钥",
                             "description": "请替换为你的密钥。",
-                            "default": "b37d7cb7e9d70760576c2c16c0f6302e"
+                            "default": "b12345678912376c2c16c0f6302e"
                         }
                     },
                     "required": ["url1", "url2", "id", "key"]
@@ -58,39 +58,38 @@ class MaoyanHeatRank(PluginBase):
                 }
             }
         }
-
-    def load_config(self):
-        """加载配置"""
-        return self.get_config_from_schema(self.config_schema)
-
-class MaoyanHeatRank(PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.config = self.load_config()  # 加载配置文件
+        self.config = self.load_config()
 
     def load_config(self):
         """加载配置文件"""
-        return {
-            "api": {
+        config = {}
+        try:
+            api_config = {
                 "url1": self.get_config("api.url1"),
                 "url2": self.get_config("api.url2"),
                 "id": self.get_config("api.id"),
-                "key": self.get_config("api.key"),
-            },
-            "notification": {
-                "title": self.get_config("notification.title"),
-                "enabled": self.get_config("notification.enabled"),
+                "key": self.get_config("api.key")
             }
-        }
+            notification_config = {
+                "title": self.get_config("notification.title"),
+                "enabled": self.get_config("notification.enabled")
+            }
+            config = {
+                "api": api_config,
+                "notification": notification_config
+            }
+        except Exception as e:
+            logger.error(f"加载配置时出错: {e}")
+        return config
 
     def fetch_data(self, url):
-        """从 API 获取数据"""
+        """从API获取数据"""
         try:
             params = {"id": self.config["api"]["id"], "key": self.config["api"]["key"]}
             response = requests.get(url, params=params)
             response.raise_for_status()
             data = response.json()
-            logger.info(f"API 返回数据: {data}")
+            logger.info(f"API返回数据: {data}")
             return data.get("data", []) if isinstance(data, dict) else data
         except Exception as e:
             logger.error(f"获取数据时出错: {e}")
@@ -101,19 +100,18 @@ class MaoyanHeatRank(PluginBase):
         if not isinstance(data, list):
             logger.error(f"返回的数据不是数组: {data}")
             return []
-
         return [
             {
                 "name": item.get("name", "未知名称"),
                 "releaseInfo": item.get("releaseInfo", "未知信息"),
                 "currHeat": float(item.get("currHeat", 0)),
-                "platformDesc": item.get("platformDesc", "未知平台"),
+                "platformDesc": item.get("platformDesc", "未知平台")
             }
             for item in data
         ]
 
     def sort_and_limit(self, data, limit=10):
-        """排序并取前 N 条数据"""
+        """排序并取前N条数据"""
         logger.info(f"排序前的数据: {data}")
         sorted_data = sorted(data, key=lambda x: x["currHeat"], reverse=True)[:limit]
         logger.info(f"排序后的数据: {sorted_data}")
@@ -124,7 +122,6 @@ class MaoyanHeatRank(PluginBase):
         if not self.config["notification"]["enabled"]:
             logger.info("通知功能已禁用")
             return
-
         message = "\n".join(
             f"{i + 1}. {item['name']}、{item['releaseInfo']}、{item['currHeat']:.2f}、{item['platformDesc']}"
             for i, item in enumerate(sorted_data)
@@ -136,24 +133,18 @@ class MaoyanHeatRank(PluginBase):
     def run(self):
         """主函数"""
         logger.info("开始执行猫眼热度榜插件...")
-
         # 获取数据
         api_url1 = self.config["api"]["url1"]
         api_url2 = self.config["api"]["url2"]
         data1 = self.fetch_data(api_url1)
         data2 = self.fetch_data(api_url2)
-
         # 提取数据
         extracted_data1 = self.extract_data(data1)
         extracted_data2 = self.extract_data(data2)
-
         # 合并数据并去重
         combined_data = list({item["name"]: item for item in extracted_data1 + extracted_data2}.values())
-
-        # 排序并取前 10 名
+        # 排序并取前10名
         sorted_data = self.sort_and_limit(combined_data, limit=10)
-
         # 发送通知
         self.send_notification(sorted_data)
-
         logger.info("猫眼热度榜插件执行完成")
