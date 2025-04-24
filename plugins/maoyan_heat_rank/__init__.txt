@@ -1,4 +1,5 @@
 from moviepilot.core.plugin import PluginBase
+import traceback
 
 class MaoyanHeatRank(PluginBase):
     plugin_info = {
@@ -6,9 +7,8 @@ class MaoyanHeatRank(PluginBase):
         "description": "获取猫眼热度榜数据并发送通知。",
         "version": "0.1",
         "author": "zlm0805",
-        "url": "https://github.com/zlm0805/MoviePilot-Plugins/"
+        "url": "https://github.com/zlm0805/mp2/"
     }
-
     def __init__(self):
         super().__init__()
         self.config_schema = {
@@ -16,30 +16,30 @@ class MaoyanHeatRank(PluginBase):
             "properties": {
                 "api": {
                     "type": "object",
-                    "title": "API 配置",
-                    "description": "请访问 https://www.apihz.cn/ 获取 ID 和密钥。",
+                    "title": "API配置",
+                    "description": "请访问https://www.apihz.cn/获取ID和密钥。",
                     "properties": {
                         "url1": {
                             "type": "string",
-                            "title": "API 地址 1",
+                            "title": "API地址1",
                             "default": "https://cn.apihz.cn/api/bang/maoyan2.php"
                         },
                         "url2": {
                             "type": "string",
-                            "title": "API 地址 2",
+                            "title": "API地址2",
                             "default": "https://cn.apihz.cn/api/bang/maoyan3.php"
                         },
                         "id": {
                             "type": "string",
                             "title": "API ID",
-                            "description": "请替换为你的 ID。",
-                            "default": "10003779"
+                            "description": "请替换为你的ID。",
+                            "default": "11234"
                         },
                         "key": {
                             "type": "string",
-                            "title": "API 密钥",
+                            "title": "API密钥",
                             "description": "请替换为你的密钥。",
-                            "default": "b37d7cb7e9d70760576c2c16c0f6302e"
+                            "default": "b12345678912376c2c16c0f6302e"
                         }
                     },
                     "required": ["url1", "url2", "id", "key"]
@@ -64,30 +64,32 @@ class MaoyanHeatRank(PluginBase):
             }
         }
 
-    def run(self):
-        """插件主逻辑"""
-        # 示例逻辑：打印日志
-        from moviepilot.utils.log import logger
-        logger.info("猫眼热度榜插件正在运行")
-        # 在这里实现获取数据、排序、发送通知等逻辑
-
 # 全局变量
 plugin = None
-
 def init_plugin():
     """初始化插件"""
     global plugin
-    plugin = MaoyanHeatRank()  # 实例化插件
-    plugin.register_config_page(
-        title="猫眼热度榜排行插件",
-        description="获取猫眼热度榜数据并发送通知。",
-        schema=plugin.config_schema
-    )
-    plugin.scheduler.add_job(plugin.run, "interval", hours=1, name="猫眼热度榜排行")
+    try:
+        plugin = MaoyanHeatRank()  # 实例化插件
+        plugin.register_config_page(
+            title="猫眼热度榜排行插件",
+            description="获取猫眼热度榜数据并发送通知。",
+            schema=plugin.config_schema
+        )
+        from moviepilot.core.scheduler import Scheduler
+        plugin.scheduler = Scheduler()
+        plugin.scheduler.add_job(plugin.run, "interval", hours=1, name="猫眼热度榜排行")
+    except Exception as e:
+        print(f"插件初始化失败: {e}")
+        print(traceback.format_exc())
 
 def destroy_plugin():
     """销毁插件"""
     global plugin
     if plugin:
-        plugin.scheduler.remove_job("猫眼热度榜排行")
+        try:
+            plugin.scheduler.remove_job("猫眼热度榜排行")
+        except Exception as e:
+            print(f"移除任务失败: {e}")
+            print(traceback.format_exc())
         plugin = None
